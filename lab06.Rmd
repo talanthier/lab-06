@@ -24,9 +24,28 @@ In this lab we will be working with SAT data from the 1982 exam. The dataset can
 
 ## Model Selection
 
+We will start with a full linear model including all possible predictor variables and no interaction terms.
+
 ```{r}
 sat_scores <- Sleuth3::case1201 
 full_model <- lm(SAT ~ Takers + Income + Years + Public + Expend + Rank , data = sat_scores)
-tidy(full_model)
+tidy(full_model) %>% kable(digits = 3)
 ```
+Now we will conduct backwards selection on our full model. We will start by using adjusted $R^2$ as our selection criterion.
+
+```{r}
+model_select <- regsubsets(SAT ~ Takers + Income + Years + Public + Expend + 
+                             Rank , data = sat_scores, method = "backward")
+select_summary <- summary(model_select)
+coef(model_select,1:6) 
+```
+So using backward selection with adjusted $R^2$ as our criterion, our best model includes `Years`, `Public`, and `Expend` as our predictor variables. Now we will run backward selection with BIC as the selection criterion.
+
+```{r}
+model_select <- regsubsets(SAT ~ Takers + Income + Years + Public + Expend + 
+                             Rank , data = sat_scores, method = "backward")
+select_summary <- summary(model_select)
+coef(model_select,1:6) 
+```
+
 
