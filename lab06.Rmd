@@ -1,0 +1,32 @@
+---
+title: "lab-06"
+author: "Tim Lanthier"
+date: "2/24/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lab 06: Model Selection + Diagnostics
+```{r, message = FALSE}
+library(tidyverse)
+library(knitr)
+library(broom)
+library(leaps)
+library(rms)
+library(Sleuth3) #case1201 data
+```
+
+In this lab we will be working with SAT data from the 1982 exam. The dataset can be found in the Sleuth3 package (case 1201).
+
+
+## Model Selection
+
+```{r}
+sat_scores <- Sleuth3::case1201 
+full_model <- lm(SAT ~ Takers + Income + Years + Public + Expend + Rank , data = sat_scores)
+tidy(full_model)
+```
+
