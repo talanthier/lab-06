@@ -37,15 +37,21 @@ Now we will conduct backwards selection on our full model. We will start by usin
 model_select <- regsubsets(SAT ~ Takers + Income + Years + Public + Expend + 
                              Rank , data = sat_scores, method = "backward")
 select_summary <- summary(model_select)
-coef(model_select,1:6) 
+coef(model_select,  which.max(select_summary$adjr2)) # choose model which has highest adj R^2 
 ```
-So using backward selection with adjusted $R^2$ as our criterion, our best model includes `Years`, `Public`, and `Expend` as our predictor variables. Now we will run backward selection with BIC as the selection criterion.
+So using adjusted $R^2$ as our criterion, our best model from our backselected models is the model with `Years`, `Public`, `Expend`, and `Rank` as our predictor variables. 
 
 ```{r}
-model_select <- regsubsets(SAT ~ Takers + Income + Years + Public + Expend + 
-                             Rank , data = sat_scores, method = "backward")
-select_summary <- summary(model_select)
-coef(model_select,1:6) 
+coef(model_select, which.min(select_summary$bic)) # choose model with smallest BIC
+```
+Meanwhile with BIC, we find the best model to be the one including just `Years`, `Expend`, and `Rank`. Note that for these cases, `regsubsets` is using the residual sum of squares for its criteria for backwards selection. We are only comparing the backwards selected models using Adj. $R^2$ and BIC.
+
+Now we will run backwards selection using AIC as the criteria for eliminating predictors.
+
+```{r}
+model_select_aic <- step(full_model, direction = "backward")
 ```
 
+With AIC as our criterion, backward selection has chosen the model with `Public`, `Expend`, `Years`, and `Rank` as the best model. Comparing the 3 different models we found with different criteria, we see that they don't all match up. While AIC and Adj. $R^2$ agreed on what variables to select, BIC yielded a model with one less variable than the rest. That being said, BIC still selected `Years`, `Expend`, and `Rank` which all appear in the models selected with AIC and Adj. $R^2$. The fact that our BIC selects a model with fewer variables makes sense since BIC tends to penalize models more complex models more heavily than AIC.
 
+## Model Diagnostics
