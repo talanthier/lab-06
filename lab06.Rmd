@@ -55,3 +55,43 @@ model_select_aic <- step(full_model, direction = "backward")
 With AIC as our criterion, backward selection has chosen the model with `Public`, `Expend`, `Years`, and `Rank` as the best model. Comparing the 3 different models we found with different criteria, we see that they don't all match up. While AIC and Adj. $R^2$ agreed on what variables to select, BIC yielded a model with one less variable than the rest. That being said, BIC still selected `Years`, `Expend`, and `Rank` which all appear in the models selected with AIC and Adj. $R^2$. The fact that our BIC selects a model with fewer variables makes sense since BIC tends to penalize models more complex models more heavily than AIC.
 
 ## Model Diagnostics
+
+For the remainder of the lab, we will be using our model selected with AIC.
+
+```{r}
+model_select_aic_aug <- augment(model_select_aic) %>%
+  mutate(obs_num = row_number())
+
+head(model_select_aic_aug,5)
+```
+
+Now that we have the model predictions and statistics for each of the observations in our dataset, we will examine the leverage for each observation. Since we're conducting multiple linear regression, leverage has the formula
+\[H = X(X^TX)^{-1}X^T\]
+where X is the original dataframe with the 4 predictor variables in our model. in `model_select_aic_aug`, leverage for each observation is shown as `.hat`. We will say that an observation has high leverage if it is above the threshold
+\[\frac{2(p+1)}{n}\]
+where $n$ is the number of observations and $p$ the number of predictors. Hence for our data we have a threshold of
+\[\frac{2(4+1)}{50} = 0.2\]
+
+Now we will plot the leverage for all of the observations
+```{r}
+ggplot(model_select_aic_aug, aes(obs_num, .hat)) +
+  geom_point() +
+  geom_hline(yintercept = 0.2, color = 'red') +
+  labs(y = 'Leverage', x = 'Observation', title = 'Leverage of Observations')
+```
+Looking at our plot of the leverage, we have 2 clear high leverage observations. We also have 3 states which are close to but not above the threshold.
+
+```{r}
+sat_scores[which(model_select_aic_aug$.hat > 0.2), ]
+```
+So the 2 states which have high leverage are Louisiana and Alaska.
+
+
+
+
+
+
+
+
+
+
