@@ -1,5 +1,5 @@
 ---
-title: "lab-06"
+title: "STAT 108: Lab 6"
 author: "Tim Lanthier"
 date: "2/24/2022"
 output: pdf_document
@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Lab 06: Model Selection + Diagnostics
+
+Github Repository: [https://github.com/talanthier/lab-06](https://github.com/talanthier/lab-06)
 ```{r, message = FALSE}
 library(tidyverse)
 library(knitr)
@@ -86,11 +88,50 @@ sat_scores[which(model_select_aic_aug$.hat > 0.2), ]
 ```
 So the 2 states which have high leverage are Louisiana and Alaska.
 
+Now we will examine the standard residuals.
 
+```{r}
+ggplot(model_select_aic_aug, aes(.fitted, .std.resid)) +
+  geom_point() + 
+  geom_hline(yintercept = 2, color = 'red') + 
+  geom_hline(yintercept = -2, color = 'red') +
+  labs(x = 'Predictions', y = 'Standard Residuals', title = 'Standard Residuals vs Predicted Scores')
+```
+According to the standard residuals, we have 3 states lying outside of our threshold. So 3 states have standard residuals with a large magnitude.
 
+```{r}
+sat_scores[which(abs(model_select_aic_aug$.std.resid) > 2), ]
+```
+As shown above, the 3 states with large standardized residuals are Mississippi, Alaska, and South Carolina.
 
+To check whether these states we identified which have high leverage or high standardized residuals are significantly impacting our model, we will investigate the Cook's distance for our data.
 
+```{r}
+ggplot(model_select_aic_aug, aes(obs_num, .cooksd)) +
+  geom_point() +
+  geom_hline(yintercept = 1, color = 'red') +
+  labs(x = 'Observation Number', y = "Cook's Distance")
+```
+With our threshold of 1 for Cook's distance, we see only one observation lies above our threshold. 
+```{r}
+sat_scores[which(abs(model_select_aic_aug$.cooksd) > 1), ]
+```
+Here, that state lying above our threshold is Alaska, which we found to have a high magnitude standardized residual as well as a high magnitude leverage. Seeing as we only have a single influential observation, it might be wise to remove that observation from our dataset. While a model based on this dataset will not be useful in predicting SAT scores in Alaska, removing Alaska might result in predictions for the remaining 49 states to be more accurate. If we wanted to use our model to make predictions on Alaska's SAT scores, we would have to include it in our dataset.
 
+Lastly we need to check for collinearity. For this we will use the Variance Inflation Factor (VIF). We will start by building a model with `Expend` as our response variable and the same predictors as our backward selected model based on AIC.
+
+```{r}
+expend_model <- lm(Expend ~ Years + Public + Rank, data = sat_scores)
+summary(expend_model)
+```
+Looking at the above model, we get an $R^2$ of 0.2102. So only approximately 21\% of the variance in `Expend` is explained by `Years`, `Public`, and `Rank`. We can calculate the VIF for `Expend` with the following formula
+\[\frac{1}{1-R^2} = \frac{1}{1-0.2102} = 1.266\]
+So we have a VIF of 1.266. Since we would consider a VIF of greater than 10 as concerning, there doesn't appear to be any concerning collinearity between `Expend` and the other predictors in the model. Now we will calculate the VIF of the remaining predictors.
+
+```{r}
+vif(model_select_aic)
+```
+The VIF for each of the predictors in our model is shown above. As we can see, the VIFs for the remaining predictors are of similar magnitude to that of `Expend`. So once again, the VIF does not indicate any collinearity between any of our variables. 
 
 
 
